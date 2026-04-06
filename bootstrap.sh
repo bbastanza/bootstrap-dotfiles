@@ -79,6 +79,14 @@ GIT_USERNAME="${1:-${GIT_USER:-}}"
 GIT_EMAIL="${2:-${GIT_EMAIL_ADDR:-}}"
 VPS_NAME="${3:-${VPS_NAME:-}}"
 
+# Pull from existing gitconfig if available
+if [[ -z "$GIT_USERNAME" ]] && [[ -f "$TARGET_HOME/.gitconfig" ]]; then
+    GIT_USERNAME=$(run_as_user "git config --global user.name" 2>/dev/null || true)
+fi
+if [[ -z "$GIT_EMAIL" ]] && [[ -f "$TARGET_HOME/.gitconfig" ]]; then
+    GIT_EMAIL=$(run_as_user "git config --global user.email" 2>/dev/null || true)
+fi
+
 if [[ -z "$GIT_USERNAME" || -z "$GIT_EMAIL" || -z "$VPS_NAME" ]]; then
     # Read from /dev/tty so it works even when piped
     [[ -z "$GIT_USERNAME" ]] && read -rp "$(echo -e "${CYAN}GitHub username: ${NC}")" GIT_USERNAME < /dev/tty
@@ -304,7 +312,7 @@ info "Writing starship config..."
 mkdir -p "$TARGET_HOME/.config"
 cat > "$TARGET_HOME/.config/starship.toml" <<EOF
 format = """
-[\[ $VPS_NAME \]](bold bright-cyan) \$all"""
+[ $VPS_NAME ](bold bright-cyan) \$all"""
 
 [character]
 success_symbol = "[>](bold green)"
