@@ -109,7 +109,7 @@ info "VPS name: $VPS_NAME"
 # ─────────────────────────────────────────────
 banner "1. System Update & Core Packages"
 
-CORE_PACKAGES="curl wget git unzip jq htop tmux ranger zsh"
+CORE_PACKAGES="curl wget git unzip tar jq htop tmux ranger zsh"
 
 if [[ "$PKG_MANAGER" == "apt" ]]; then
     info "Updating apt..."
