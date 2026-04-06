@@ -365,13 +365,22 @@ else
     success "SSH key already exists: $SSH_KEY"
 fi
 
-echo -e "\n${YELLOW}${BOLD}ACTION REQUIRED:${NC} Please complete GitHub authentication below."
-echo -e "${CYAN}Running: gh auth login${NC}\n"
-run_as_user "gh auth login" < /dev/tty
+if run_as_user "gh auth status &>/dev/null"; then
+    success "gh already authenticated"
+else
+    echo -e "\n${YELLOW}${BOLD}ACTION REQUIRED:${NC} Please complete GitHub authentication below."
+    echo -e "${CYAN}Select the following when prompted:${NC}"
+    echo -e "  ${BOLD}1.${NC} GitHub.com"
+    echo -e "  ${BOLD}2.${NC} HTTPS"
+    echo -e "  ${BOLD}3.${NC} Login with a web browser (or paste a token)"
+    echo -e "${CYAN}Required scopes:${NC} ${BOLD}repo${NC}, ${BOLD}admin:public_key${NC}\n"
+    run_as_user "gh auth login --scopes repo,admin:public_key" < /dev/tty
+fi
 
 info "Adding SSH key to GitHub..."
-run_as_user "gh ssh-key add '${SSH_KEY}.pub' --title '$(hostname)'"
-success "SSH key added to GitHub"
+run_as_user "gh ssh-key add '${SSH_KEY}.pub' --title '$(hostname)'" 2>/dev/null \
+    && success "SSH key added to GitHub" \
+    || success "SSH key already on GitHub"
 
 # ─────────────────────────────────────────────
 # 9. NVM + Node
