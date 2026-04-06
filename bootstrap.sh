@@ -499,7 +499,7 @@ https://download.docker.com/linux/${ID} $(lsb_release -cs) stable" \
         apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     elif [[ "$PKG_MANAGER" == "dnf" ]]; then
         dnf install -y dnf-plugins-core
-        dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+        dnf config-manager addrepo --from-repofile=https://download.docker.com/linux/fedora/docker-ce.repo
         dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     fi
     success "Docker installed"
