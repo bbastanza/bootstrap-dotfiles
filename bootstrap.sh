@@ -73,25 +73,28 @@ info "Package manager: ${BOLD}$PKG_MANAGER${NC}"
 # Usage: GIT_USER=x GIT_EMAIL=y sudo -E bash bootstrap.sh
 #   or:  sudo bash bootstrap.sh <username> <email>
 # ─────────────────────────────────────────────
-banner "Git Configuration"
+banner "Configuration"
 
 GIT_USERNAME="${1:-${GIT_USER:-}}"
 GIT_EMAIL="${2:-${GIT_EMAIL_ADDR:-}}"
+VPS_NAME="${3:-${VPS_NAME:-}}"
 
-if [[ -z "$GIT_USERNAME" || -z "$GIT_EMAIL" ]]; then
+if [[ -z "$GIT_USERNAME" || -z "$GIT_EMAIL" || -z "$VPS_NAME" ]]; then
     # Read from /dev/tty so it works even when piped
-    read -rp "$(echo -e "${CYAN}GitHub username: ${NC}")" GIT_USERNAME < /dev/tty
-    read -rp "$(echo -e "${CYAN}GitHub email: ${NC}")" GIT_EMAIL < /dev/tty
+    [[ -z "$GIT_USERNAME" ]] && read -rp "$(echo -e "${CYAN}GitHub username: ${NC}")" GIT_USERNAME < /dev/tty
+    [[ -z "$GIT_EMAIL" ]] && read -rp "$(echo -e "${CYAN}GitHub email: ${NC}")" GIT_EMAIL < /dev/tty
+    [[ -z "$VPS_NAME" ]] && read -rp "$(echo -e "${CYAN}VPS name (shown in prompt): ${NC}")" VPS_NAME < /dev/tty
 fi
 
-if [[ -z "$GIT_USERNAME" || -z "$GIT_EMAIL" ]]; then
-    error "Username and email are required."
-    error "Pass as args: sudo bash bootstrap.sh <username> <email>"
-    error "Or env vars:  GIT_USER=x GIT_EMAIL=y sudo -E bash bootstrap.sh"
+if [[ -z "$GIT_USERNAME" || -z "$GIT_EMAIL" || -z "$VPS_NAME" ]]; then
+    error "Username, email, and VPS name are required."
+    error "Pass as args: sudo bash bootstrap.sh <username> <email> <vps-name>"
+    error "Or env vars:  GIT_USER=x GIT_EMAIL=y VPS_NAME=z sudo -E bash bootstrap.sh"
     exit 1
 fi
 
 info "Git user: $GIT_USERNAME <$GIT_EMAIL>"
+info "VPS name: $VPS_NAME"
 
 # ─────────────────────────────────────────────
 # 1. System Update & Core Packages
@@ -296,6 +299,19 @@ if ! command_exists starship; then
 else
     success "Starship already installed"
 fi
+
+info "Writing starship config..."
+mkdir -p "$TARGET_HOME/.config"
+cat > "$TARGET_HOME/.config/starship.toml" <<EOF
+format = """
+[\[ $VPS_NAME \]](bold bright-cyan) \$all"""
+
+[character]
+success_symbol = "[>](bold green)"
+error_symbol = "[>](bold red)"
+EOF
+chown "$TARGET_USER:$TARGET_USER" "$TARGET_HOME/.config/starship.toml"
+success "Starship config written (VPS: $VPS_NAME)"
 
 # ─────────────────────────────────────────────
 # 7. Git + GitHub CLI
@@ -642,6 +658,12 @@ banner "16. Set Default Shell to Zsh"
 
 ZSH_PATH=$(which zsh)
 CURRENT_SHELL=$(getent passwd "$TARGET_USER" | cut -d: -f7)
+
+# Ensure zsh is in /etc/shells
+if ! grep -qx "$ZSH_PATH" /etc/shells; then
+    info "Adding $ZSH_PATH to /etc/shells..."
+    echo "$ZSH_PATH" >> /etc/shells
+fi
 
 if [[ "$CURRENT_SHELL" != "$ZSH_PATH" ]]; then
     chsh -s "$ZSH_PATH" "$TARGET_USER"
