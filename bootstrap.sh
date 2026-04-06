@@ -615,7 +615,8 @@ alias commit="git commit -m"
 alias branch="git branch | bat -p"
 alias fpull="git checkout main && git fetch && git pull"
 alias amend="git add -A && git commit --amend --no-edit"
-alias repo="cd $HOME/Repos"
+alias up="sudo dnf update -y && sudo dnf upgrade -y"
+alias pull="git pull"
 
 # --- Utility Aliases ---
 alias ls="eza -l"
