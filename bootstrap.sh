@@ -312,7 +312,7 @@ info "Writing starship config..."
 mkdir -p "$TARGET_HOME/.config"
 cat > "$TARGET_HOME/.config/starship.toml" <<EOF
 format = """
-_${VPS_NAME}_ \$all"""
+${VPS_NAME} \$all"""
 
 [character]
 success_symbol = "[>](bold green)"
